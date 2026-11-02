@@ -108,3 +108,197 @@ document.querySelectorAll("[data-question]").forEach((button) =>
   }),
 );
 document.getElementById("year").textContent = String(new Date().getFullYear());
+
+// Theme toggle logic
+const themeToggle = document.getElementById("theme-toggle");
+
+function getActiveTheme() {
+  const saved = localStorage.getItem("prism-theme");
+  if (saved === "light" || saved === "dark") {
+    return saved;
+  }
+  return document.documentElement.getAttribute("data-theme") || "dark";
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("prism-theme", theme);
+
+  const isDark = theme === "dark";
+  const label = isDark ? "Switch to light mode" : "Switch to dark mode";
+
+  if (themeToggle) {
+    themeToggle.setAttribute("aria-label", label);
+    themeToggle.setAttribute("title", label);
+    themeToggle.setAttribute("aria-pressed", String(isDark));
+  }
+
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (metaTheme) {
+    metaTheme.setAttribute("content", isDark ? "#13131C" : "#ffffff");
+  }
+}
+
+if (themeToggle) {
+  themeToggle.addEventListener("click", () => {
+    const current =
+      document.documentElement.getAttribute("data-theme") || "dark";
+    const next = current === "dark" ? "light" : "dark";
+    applyTheme(next);
+  });
+}
+
+// Initial state sync
+applyTheme(getActiveTheme());
+
+// Google Apps Script Web App URL (replace with your deployed URL if needed)
+const GOOGLE_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbyjSW4tGEXXiqmQikpscroFOOt_Efs9krTax-JxR6NEEMwQWKGy3Y7Vcc9D8ERPm3ql/exec";
+
+async function handleWaitlistSubmit(event, inputId) {
+  event.preventDefault();
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  const email = input.value.trim();
+  if (!email) return;
+
+  const form = input.closest("form");
+  const button = form ? form.querySelector("button[type='submit']") : null;
+  const originalBtnContent = button ? button.innerHTML : "";
+
+  // Button loading state
+  if (button) {
+    button.disabled = true;
+    button.innerHTML = `<span>Joining...</span>`;
+  }
+
+  try {
+    // If a Google Apps Script Web App URL is configured, send the submission
+    if (
+      GOOGLE_SCRIPT_URL &&
+      !GOOGLE_SCRIPT_URL.includes("YOUR_GOOGLE_APPS_SCRIPT")
+    ) {
+      const params = new URLSearchParams();
+      params.append("email", email);
+      params.append("timestamp", new Date().toLocaleString());
+      params.append(
+        "source",
+        inputId === "hero-email" ? "Hero Section" : "Footer Section",
+      );
+
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: params.toString(),
+      });
+    }
+
+    // Show Feedback Toast
+    const toast = document.getElementById("toast");
+    if (toast) {
+      toast.classList.remove("translate-y-[-150%]", "opacity-0");
+      toast.classList.add("translate-y-0", "opacity-100");
+
+      setTimeout(() => {
+        toast.classList.remove("translate-y-0", "opacity-100");
+        toast.classList.add("translate-y-[-150%]", "opacity-0");
+      }, 4500);
+    }
+
+    // Clear input
+    input.value = "";
+  } catch (error) {
+    console.error("Error submitting waitlist email:", error);
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = originalBtnContent;
+      if (typeof lucide !== "undefined") {
+        lucide.createIcons();
+      }
+    }
+  }
+}
+
+window.handleWaitlistSubmit = handleWaitlistSubmit;
+
+async function handleContactSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  const nameInput = form.querySelector("#contact-name");
+  const emailInput = form.querySelector("#contact-email");
+  const topicInput = form.querySelector("#contact-topic");
+  const messageInput = form.querySelector("#contact-message");
+  const button = form.querySelector("button[type='submit']");
+  const originalBtnContent = button ? button.innerHTML : "";
+
+  if (button) {
+    button.disabled = true;
+    button.innerHTML = `<span>Sending message...</span>`;
+  }
+
+  try {
+    if (
+      GOOGLE_SCRIPT_URL &&
+      !GOOGLE_SCRIPT_URL.includes("YOUR_GOOGLE_APPS_SCRIPT")
+    ) {
+      const params = new URLSearchParams();
+      params.append("name", nameInput ? nameInput.value.trim() : "");
+      params.append("email", emailInput ? emailInput.value.trim() : "");
+      params.append("topic", topicInput ? topicInput.value : "");
+      params.append("message", messageInput ? messageInput.value.trim() : "");
+      params.append("timestamp", new Date().toLocaleString());
+      params.append("source", "Contact Form");
+
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: params.toString(),
+      });
+    }
+
+    const toast = document.getElementById("toast");
+    if (toast) {
+      const strong = toast.querySelector("strong");
+      const span = toast.querySelector("span");
+      const origStrong = strong ? strong.textContent : "";
+      const origSpan = span ? span.textContent : "";
+
+      if (strong) strong.textContent = "Message sent!";
+      if (span)
+        span.textContent =
+          "Thanks for reaching out. We'll be in touch soon.";
+
+      toast.classList.remove("translate-y-[-150%]", "opacity-0");
+      toast.classList.add("translate-y-0", "opacity-100");
+
+      setTimeout(() => {
+        toast.classList.remove("translate-y-0", "opacity-100");
+        toast.classList.add("translate-y-[-150%]", "opacity-0");
+        setTimeout(() => {
+          if (strong) strong.textContent = origStrong;
+          if (span) span.textContent = origSpan;
+        }, 500);
+      }, 4500);
+    }
+
+    form.reset();
+  } catch (error) {
+    console.error("Error submitting contact form:", error);
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = originalBtnContent;
+    }
+  }
+}
+
+window.handleContactSubmit = handleContactSubmit;
+
