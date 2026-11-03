@@ -155,31 +155,75 @@ applyTheme(getActiveTheme());
 const GOOGLE_SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbyjSW4tGEXXiqmQikpscroFOOt_Efs9krTax-JxR6NEEMwQWKGy3Y7Vcc9D8ERPm3ql/exec";
 
+let toastTimeout = null;
+
+function showToast(title, message, duration = 4500) {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+
+  const strong = toast.querySelector(".toast-content strong");
+  const span = toast.querySelector(".toast-content span");
+
+  if (strong && title) strong.textContent = title;
+  if (span && message) span.textContent = message;
+
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+    toastTimeout = null;
+  }
+
+  toast.classList.remove("translate-y-[-150%]", "opacity-0", "toast-hidden");
+  toast.classList.add("translate-y-0", "opacity-100", "toast-visible");
+
+  toastTimeout = setTimeout(() => {
+    hideToast();
+  }, duration);
+}
+
+function hideToast() {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+
+  toast.classList.remove("translate-y-0", "opacity-100", "toast-visible");
+  toast.classList.add("translate-y-[-150%]", "opacity-0", "toast-hidden");
+
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+    toastTimeout = null;
+  }
+}
+
+window.showToast = showToast;
+window.hideToast = hideToast;
+
 async function handleWaitlistSubmit(event, inputId) {
   event.preventDefault();
+
   const input = document.getElementById(inputId);
+
   if (!input) return;
 
   const email = input.value.trim();
+
   if (!email) return;
 
   const form = input.closest("form");
   const button = form ? form.querySelector("button[type='submit']") : null;
+
   const originalBtnContent = button ? button.innerHTML : "";
 
-  // Button loading state
   if (button) {
     button.disabled = true;
-    button.innerHTML = `<span>Joining...</span>`;
+    button.innerHTML = `<span class="button-loading"><span class="button-spinner" aria-hidden="true"></span><span>Joining...</span></span>`;
   }
 
   try {
-    // If a Google Apps Script Web App URL is configured, send the submission
     if (
       GOOGLE_SCRIPT_URL &&
       !GOOGLE_SCRIPT_URL.includes("YOUR_GOOGLE_APPS_SCRIPT")
     ) {
       const params = new URLSearchParams();
+
       params.append("email", email);
       params.append("timestamp", new Date().toLocaleString());
       params.append(
@@ -195,21 +239,13 @@ async function handleWaitlistSubmit(event, inputId) {
         },
         body: params.toString(),
       });
+    } else {
+      throw new Error("Google Apps Script URL is not configured.");
     }
 
-    // Show Feedback Toast
-    const toast = document.getElementById("toast");
-    if (toast) {
-      toast.classList.remove("translate-y-[-150%]", "opacity-0");
-      toast.classList.add("translate-y-0", "opacity-100");
+    // Show success toast
+    showToast("You're on the waitlist!", "We'll notify you when MyPrism 360 launches.");
 
-      setTimeout(() => {
-        toast.classList.remove("translate-y-0", "opacity-100");
-        toast.classList.add("translate-y-[-150%]", "opacity-0");
-      }, 4500);
-    }
-
-    // Clear input
     input.value = "";
   } catch (error) {
     console.error("Error submitting waitlist email:", error);
@@ -217,6 +253,7 @@ async function handleWaitlistSubmit(event, inputId) {
     if (button) {
       button.disabled = false;
       button.innerHTML = originalBtnContent;
+
       if (typeof lucide !== "undefined") {
         lucide.createIcons();
       }
@@ -228,17 +265,29 @@ window.handleWaitlistSubmit = handleWaitlistSubmit;
 
 async function handleContactSubmit(event) {
   event.preventDefault();
+
   const form = event.target;
+
   const nameInput = form.querySelector("#contact-name");
   const emailInput = form.querySelector("#contact-email");
   const topicInput = form.querySelector("#contact-topic");
   const messageInput = form.querySelector("#contact-message");
+
   const button = form.querySelector("button[type='submit']");
   const originalBtnContent = button ? button.innerHTML : "";
 
+  const name = nameInput ? nameInput.value.trim() : "";
+  const email = emailInput ? emailInput.value.trim() : "";
+  const topic = topicInput ? topicInput.value : "";
+  const message = messageInput ? messageInput.value.trim() : "";
+
+  if (!name || !email || !message) {
+    return;
+  }
+
   if (button) {
     button.disabled = true;
-    button.innerHTML = `<span>Sending message...</span>`;
+    button.innerHTML = `<span class="button-loading"><span class="button-spinner" aria-hidden="true"></span><span>Sending message...</span></span>`;
   }
 
   try {
@@ -247,10 +296,11 @@ async function handleContactSubmit(event) {
       !GOOGLE_SCRIPT_URL.includes("YOUR_GOOGLE_APPS_SCRIPT")
     ) {
       const params = new URLSearchParams();
-      params.append("name", nameInput ? nameInput.value.trim() : "");
-      params.append("email", emailInput ? emailInput.value.trim() : "");
-      params.append("topic", topicInput ? topicInput.value : "");
-      params.append("message", messageInput ? messageInput.value.trim() : "");
+
+      params.append("name", name);
+      params.append("email", email);
+      params.append("topic", topic);
+      params.append("message", message);
       params.append("timestamp", new Date().toLocaleString());
       params.append("source", "Contact Form");
 
@@ -262,31 +312,17 @@ async function handleContactSubmit(event) {
         },
         body: params.toString(),
       });
+    } else {
+      throw new Error("Google Apps Script URL is not configured.");
     }
 
-    const toast = document.getElementById("toast");
-    if (toast) {
-      const strong = toast.querySelector("strong");
-      const span = toast.querySelector("span");
-      const origStrong = strong ? strong.textContent : "";
-      const origSpan = span ? span.textContent : "";
-
-      if (strong) strong.textContent = "Message sent!";
-      if (span)
-        span.textContent =
-          "Thanks for reaching out. We'll be in touch soon.";
-
-      toast.classList.remove("translate-y-[-150%]", "opacity-0");
-      toast.classList.add("translate-y-0", "opacity-100");
-
+    // Show inline feedback inside the contact form (toast is not shown for contact form)
+    const feedback = document.getElementById("contact-feedback");
+    if (feedback) {
+      feedback.hidden = false;
       setTimeout(() => {
-        toast.classList.remove("translate-y-0", "opacity-100");
-        toast.classList.add("translate-y-[-150%]", "opacity-0");
-        setTimeout(() => {
-          if (strong) strong.textContent = origStrong;
-          if (span) span.textContent = origSpan;
-        }, 500);
-      }, 4500);
+        feedback.hidden = true;
+      }, 7000);
     }
 
     form.reset();
@@ -302,3 +338,13 @@ async function handleContactSubmit(event) {
 
 window.handleContactSubmit = handleContactSubmit;
 
+// Hide contact inline feedback on new input
+const contactFormEl = document.getElementById("contact-form");
+if (contactFormEl) {
+  contactFormEl.addEventListener("input", () => {
+    const feedback = document.getElementById("contact-feedback");
+    if (feedback && !feedback.hidden) {
+      feedback.hidden = true;
+    }
+  });
+}

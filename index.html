@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="color-scheme" content="dark light" />
     <meta name="theme-color" content="#13131C" />
+    <link rel="icon" href="favicon.png" type="image/png" />
     <script>
       (function () {
         var saved = localStorage.getItem("prism-theme");
@@ -25,7 +26,6 @@
       content="A clearer view of the insurance you already have. Launching in Switzerland."
     />
     <title>MyPrism 360 — Your insurance. Finally clear.</title>
-    <link rel="icon" href="logo.jpg" type="image/jpeg" />
     <link rel="stylesheet" href="styles.css" />
     <script defer src="app.js"></script>
   </head>
@@ -34,22 +34,32 @@
     <a class="skip-link" href="#main">Skip to content</a>
     <div
       id="toast"
-      class="toast-notification translate-y-[-150%] opacity-0"
+      class="toast-notification translate-y-[-150%] opacity-0 toast-hidden"
       role="status"
       aria-live="polite"
     >
-      <span class="toast-icon" aria-hidden="true">✓</span>
-      <div class="toast-content">
-        <strong>You&apos;re on the waitlist!</strong>
-        <span>We&apos;ll notify you when MyPrism 360 launches.</span>
+      <div class="toast-icon" aria-hidden="true">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="4 10 8 14 16 6"></polyline>
+        </svg>
       </div>
+      <div class="toast-content">
+        <strong id="toast-title">You&apos;re on the waitlist!</strong>
+        <span id="toast-message">We&apos;ll notify you when MyPrism 360 launches.</span>
+      </div>
+      <button type="button" class="toast-close" id="toast-close" aria-label="Dismiss notification" onclick="hideToast()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
     </div>
     <header class="site-header">
       <div class="container nav-wrap">
         <a href="#" class="brand" aria-label="MyPrism 360 home"
           ><img
             class="brand-logo"
-            src="logo.jpg"
+            src="logo-new.png"
             alt=""
             width="40"
             height="40"
@@ -152,7 +162,7 @@
               <div class="product-header">
                 <img
                   class="product-logo"
-                  src="logo.jpg"
+                  src="logo-new.png"
                   alt=""
                   width="25"
                   height="25"
@@ -311,9 +321,8 @@
           </div>
         </div>
         <div class="container trust-strip">
-          <span><span data-icon="flag"></span> Built for Switzerland</span
-          ><span
-            ><span data-icon="shield"></span> We don&apos;t sell insurance</span
+          <!-- <span><span data-icon="flag"></span> Built for Switzerland</span> -->
+          <span><span data-icon="shield"></span> We don&apos;t sell insurance</span
           ><span><span data-icon="file"></span> Start with one policy</span
           ><span><span data-icon="message"></span> Everyday language</span>
         </div>
@@ -336,7 +345,7 @@
             <article class="benefit-card lavender-card">
               <div class="mini-stack" aria-hidden="true">
                 <span class="paper paper-back"></span
-                ><span class="paper paper-middle"></span
+                ><span class="paper paperdmiddle"></span
                 ><span class="paper paper-front"
                   ><span data-icon="file"></span><i></i><i></i
                   ><b>All together.</b></span
@@ -689,6 +698,17 @@
           </div>
 
           <div class="contact-form-wrap">
+            <div class="contact-feedback" id="contact-feedback" role="alert" aria-live="polite" hidden>
+              <span class="contact-feedback-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="4 10 8 14 16 6"></polyline>
+                </svg>
+              </span>
+              <div class="contact-feedback-content">
+                <strong>Message sent successfully!</strong>
+                <span>Thanks for reaching out. We&apos;ll be in touch within 24 business hours.</span>
+              </div>
+            </div>
             <form class="contact-form" id="contact-form" onsubmit="handleContactSubmit(event)">
               <div class="form-group">
                 <label for="contact-name">Your Name</label>
@@ -740,7 +760,7 @@
               </div>
 
               <button type="submit" class="button button-contact">
-                Send message <span aria-hidden="true">↗</span>
+                Send message
               </button>
             </form>
           </div>
@@ -750,12 +770,12 @@
       <section class="waitlist-section" id="waitlist">
         <div class="container">
           <div class="waitlist-panel">
-            <span class="waitlist-orbit orbit-one" aria-hidden="true"></span
+            <!-- <span class="waitlist-orbit orbit-one" aria-hidden="true"></span
             ><span class="waitlist-orbit orbit-two" aria-hidden="true"></span>
             <div class="eyebrow">
               <span class="status-dot" aria-hidden="true"></span> LAUNCHING IN
               SWITZERLAND
-            </div>
+            </div> -->
             <h2>A little less paperwork.<br />A lot more clarity.</h2>
             <p>
               Be there when MyPrism 360 launches.<br />Join the waitlist for a
@@ -793,7 +813,7 @@
         <a href="#" class="brand" aria-label="MyPrism 360 home"
           ><img
             class="brand-logo"
-            src="logo.jpg"
+            src="logo-new.png"
             alt=""
             width="40"
             height="40"
